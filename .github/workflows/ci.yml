@@ -78,13 +78,19 @@ jobs:
       run: |
         TAG_VERSION=${GITHUB_REF#refs/tags/}
         echo "Updating image tag to: $TAG_VERSION"
+        echo "Registry: ${{ env.REGISTRY }}"
+        echo "Image Name: ${{ env.IMAGE_NAME }}"
         
-        # deployment.yaml에서 이미지 태그 업데이트
-        sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}|" k8s/deployment.yaml
+        # 현재 deployment.yaml 내용 확인
+        echo "Current deployment.yaml image line:"
+        grep "image:" k8s/deployment.yaml || echo "No image line found"
+        
+        # deployment.yaml에서 이미지 태그 업데이트 (더 안전한 패턴 사용)
+        sed -i "s|image: ghcr\.io/[^:]*:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG_VERSION}|g" k8s/deployment.yaml
         
         # 변경사항 확인
-        echo "Updated deployment.yaml:"
-        cat k8s/deployment.yaml | grep "image:"
+        echo "Updated deployment.yaml image line:"
+        grep "image:" k8s/deployment.yaml
         
     - name: Commit updated deployment
       run: |
