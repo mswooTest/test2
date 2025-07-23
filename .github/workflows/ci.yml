@@ -66,14 +66,16 @@ jobs:
         fetch-depth: 0
 
     - name: Build and push Docker image
+      env:
+        TAG_VERSION: ${{ github.ref_name }}
       uses: docker/build-push-action@v5
       with:
         context: .
         platforms: linux/arm64
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        outputs: type=registry
+        tags: |
+          ghcr.io/${{ github.repository }}:${{ env.TAG_VERSION }}
+          ghcr.io/${{ github.repository }}:latest
 
     - name: Update K8s deployment image tag
       run: |
